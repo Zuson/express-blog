@@ -1,0 +1,80 @@
+extends layout
+
+block content
+	#admin-category
+		include admin-header.jade
+		.container-fluid
+			.row
+				.col-md-12
+					- for(var i = 0; i < data.length; i++)
+						.btn-group
+							button.btn.btn-default(type="button")=data[i].name
+							button.btn.btn-danger.delete-category(type="button" categoryid=data[i].category_id)
+								span.glyphicon.glyphicon-remove
+			.row
+				.col-md-6
+					input#text.form-control(type="text")
+				.col-md-6
+					button#submit.btn.btn-info 提交
+		#alert
+	script.
+		$("#text").keypress(function(event) {
+			if(event.key == "Enter") {
+				$("#submit").click();
+			}
+		});
+		$("#submit").click(function(event) {
+			var text = $("#text").val();
+			if($.trim(text) == "") {
+				showAlert("內容不能為空");
+			}else {
+				var data = "category=" + text;
+				$.ajax({
+					url: '/admin/category',
+					type: 'POST',
+					dataType: 'html',
+					data: data
+				})
+				.done(function(data) {
+					if(data == "pass") {
+						window.location.href = "/admin/category";
+					}else {
+						showAlert(data)
+					}
+				})
+				.fail(function() {
+					console.log("error");
+				});
+			}
+		});
+		$(".delete-category").click(function(event) {
+			var data = "category=" + $(this).attr("categoryid");
+			$.ajax({
+				url: '/admin/delete-category',
+				type: 'POST',
+				dataType: 'html',
+				data: data
+			})
+			.done(function(data) {
+				if(data == "pass") {
+					window.location.href = "/admin/category";
+				}else {
+					showAlert(data);
+				}
+			})
+			.fail(function() {
+				console.log("error");
+			});
+		});
+		$("#text").focus(function(event) {
+			hideAlert();
+		});
+		function showAlert(text) {
+			var html = "";
+			html += '<div class="alert alert-danger"><button type="button" data-dismiss="alert" ';
+			html+= 'aria-hidden="true" class="close">×</button><strong>' + text + '</strong></div>';
+			$("#alert").html(html);
+		}
+		function hideAlert() {
+			$("#alert").html("");
+		}

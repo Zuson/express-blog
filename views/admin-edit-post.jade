@@ -1,0 +1,63 @@
+extends layout
+
+block content
+	#admin-edit-post
+		include admin-header.jade
+		.container-fluid
+			.row
+				.col-md-6.col-sm-9
+					.input-group
+						span.input-group-addon#sizing-addon1
+							span.glyphicon.glyphicon-search
+						input#submit.form-control(type="text" placeholder="输入内容按Enter搜索" aria-describedby="sizing-addon2")
+			.row
+				.col-md-12
+					.btn-group
+						button.btn.btn-default.dropdown-toggle#dropdownMenu1(type="button" data-toggle="dropdown") 
+							span 全部分类 
+							span.caret
+						ul.dropdown-menu(role="menu" aria-labelledby="dropdownMenu1")
+							li(role="presentation")
+								a(href="/admin/edit-post") 全部分类
+							- for(var i = 0; i < category.length; i++)
+								li
+									a(href="?category_id="+category[i].category_id data-id=category[i].category_id)
+										=category[i].name
+
+			- for(var i = 0; i < data.length; i++)
+				.row
+					.col-md-12
+						.btn-group
+							button.btn.btn-default.check-post(type="button" uri=data[i].uri)=data[i].title
+							button.btn.btn-danger(type="button") 修改
+							button.btn.btn-danger.delete-post(type="button" post_id=data[i].post_id) 删除
+	script.
+		$("ul.dropdown-menu a").click(function(event) {
+			$("ul.dropdown-menu").siblings('button').children('span').eq(0).text($(this).text() + " ");
+			category_id = $(this).attr('data-id');
+		});
+		$(".check-post").click(function(event) {
+			window.location.href = "/post/" + $(this).attr('uri');
+		});
+		$(".delete-post").click(function(event) {
+			var data = "post_id=" + $(this).attr("post_id");
+			$.ajax({
+				url: '/admin/delete-post',
+				type: 'POST',
+				dataType: 'html',
+				data: data
+			})
+			.done(function(data) {
+				if(data = "pass") {
+					window.location.href = "/admin/edit-post";
+				}
+			})
+			.fail(function() {
+				console.log("error");
+			});
+		});
+		$("#submit").keypress(function(event) {
+			if(event.key == "Enter"){
+				window.location.href="/admin/edit-post?title=" + $("#submit").val();
+			}
+		});

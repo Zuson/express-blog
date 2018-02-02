@@ -1,0 +1,108 @@
+extends layout
+
+block content
+	#post
+		include header.jade
+		.container
+			.row
+				.col-md-12
+					- for(var i =0;i < data.length; i++)
+						ol.breadcrumb
+							li
+								a(href="/") 博客系统
+							li
+								a(href="?category_id=" + data[i].category_id) #{data[i].name}
+							li.active #{data[i].title}
+			.row
+				.col-md-12
+					- for(var i =0;i < data.length; i++)
+						.post
+							.row
+								.col-md-12.title
+									p#post_id(post_id=data[i].post_id uri=data[i].uri) #{data[i].title}
+								.col-md-12
+									span 日期:
+										em #{data[i].date}
+									span 类别:
+										em #{data[i].name}
+									span 浏览:
+										em #{data[i].views}
+									span 评论:
+										em #{data[i].comments}
+								.col-md-12
+									.post-content !{data[i].content}
+					.interest
+						.row
+							.col-md-12
+								p 你感兴趣的
+								ul
+									- for(var i =0;i < recommends.length; i++)
+										li 
+											a(href="/post/" + recommends[i].uri) #{recommends[i].title}
+					.comments
+						- for(var i =0; i < comments.length; i++)
+							.comment-body
+								.comment-title
+									span #{i+1}楼
+									span 
+										a(href=comments[i].url) #{comments[i].nikname}
+									span.pull-right #{comments[i].date}
+								.comment-content
+									p #{comments[i].content}
+					.submit
+						.row
+							.col-md-6
+								input#url(type="text" placeholder="链接网址")
+						.row
+							.col-md-6
+								input#nickname(type="text" placeholder="昵称")
+								span *
+						.row
+							.col-md-12
+								textarea.form-control#content(rows="5" placeholder="内容少于1000字")
+						.row
+							.col-md-12
+								button.btn.btn-info#submit 提交
+		include footer.jade
+		#alert
+	script.
+		$('#submit').click(function(event) {
+			var post_id = encodeURIComponent($('#post_id').attr('post_id'));
+			var url = encodeURIComponent($('#url').val());
+			var nickname = encodeURIComponent($('#nickname').val());
+			var content = encodeURIComponent($('#content').val());
+			var data = 'post_id=' + post_id + '&url=' + url + '&nickname=' + nickname + '&content=' + content;
+			if($.trim(nickname) == "") 
+				return showAlert("昵称不能为空！");
+			if($.trim(content) == "") 
+				return showAlert("内容不能为空！");
+			$.ajax({
+				url: '/post/' + $("#post_id").attr("uri"),
+				type: 'POST',
+				dataType: 'html',
+				data: data
+			})
+			.done(function(data) {
+				console.log(data);
+				if(data=="pass"){
+					window.location.href = "/post/" + $("#post_id").attr("uri");
+				}else{
+					showAlert(data);
+				}
+			})
+			.fail(function() {
+				console.log("error");
+			});
+		});
+		$('#url, #nickname, #content').focus(function(event) {
+			hideAlert();
+		});
+		function showAlert(text) {
+			var html = '';
+			html += '<div class="alert alert-danger"><button type="button" data-dismiss="alert" ';
+			html += 'aria-hidden="true" class="close">×</button><strong>' + text + '</strong></div>';
+			$("#alert").html(html);
+		}
+		function hideAlert() {
+			$("#alert").html("");
+		}

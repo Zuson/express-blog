@@ -1,0 +1,33 @@
+extends layout
+
+block content
+	#index
+		include header.jade
+		.container
+			.row
+				.col-md-8
+					- for(var i = 0; i < data.length; i++)
+						.posts
+							.row
+								.col-md-12.title
+									a(href="post/" + data[i].uri)
+										p=data[i].title
+								.col-md-12
+									span 日期:
+										em #{data[i].date}
+									span 分类:
+										em #{data[i].name}
+									span 浏览:
+										em #{data[i].views}
+									span 评论:
+										em #{data[i].comments}
+								.col-md-12
+									a(href="post/" + data[i].uri)
+										img(src=data[i].image_url)
+								.col-md-12
+									a(href="post/" + data[i].uri)
+										p #{data[i].summary}
+				.col-md-4
+					include right-navbar.jade
+
+		include footer.jade

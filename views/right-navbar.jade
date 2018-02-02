@@ -1,0 +1,11 @@
+doctype html
+.category
+	p 文章分类
+	ul
+		li 
+			a(href="/") 全部分类
+				em  ( #{categoryJ}篇文章 )
+		- for(var i =1;i < category.length; i++)
+			li 
+				a(href="?category_id=" + category[i].category_id) #{category[i].name}  
+					em  ( #{category[i].cname}篇文章 )

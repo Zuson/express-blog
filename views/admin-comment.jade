@@ -1,0 +1,44 @@
+extends layout
+
+block content
+	#admin-comment
+		include admin-header.jade
+		.container-fluid
+			.row
+				.col-md-6.col-sm-9
+					.input-group
+						span.input-group-addon#sizing-addon1
+							span.glyphicon.glyphicon-search
+						input.form-control(type="text" placeholder="搜索" aria-describedby="sizing-addon2")
+			- for(var i = comments.length-1;i >= 0; i--)
+				-if (comments[i].disable != 0)
+					.comment
+						.row
+							.col-md-12
+								button.btn.btn-danger.form-control.delete-comment(type="button" comment_id=comments[i].comment_id)
+									span.glyphicon.glyphicon-remove
+						.row
+							.col-md-12
+								.content
+									p 
+										a(href = "/post/" + comments[i].uri) 《#{comments[i].title}》 
+										a(href = comments[i].url) #{comments[i].nickname}
+										span.pull-right #{comments[i].date}
+									p #{comments[i].content}
+	script.
+		$(".delete-comment").click(function(event) {
+			var data = "comment_id=" + $(this).attr("comment_id");
+			$.ajax({
+				url: '/admin/comment',
+				type: 'POST',
+				dataType: 'html',
+				data: data
+			})
+			.done(function(data) {
+				if(data == "pass") {window.location.href = "/admin/comment"};
+			})
+			.fail(function() {
+				console.log("error");
+			});
+		});
+		

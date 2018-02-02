@@ -1,0 +1,59 @@
+extends layout
+
+block content
+	#login
+		.container
+			.row
+				.col-md-5.col-sm-5
+					.input-group
+						span.input-group-addon
+							i.fa.fa-user
+						input.form-control#user(placeholder="用户名")
+
+				.col-md-5.col-sm-5
+					.input-group
+						span.input-group-addon
+							i.fa.fa-lock
+						input.form-control#pwd(placeholder="密码" type="password")
+							
+				.col-md-2.col-sm-2
+					button.btn.btn-info.form-control#submit 提交
+	#alert
+	script.
+		$("#user").focus();
+		$(window).keypress(function(event) {
+			if(event.key == "Enter") {$("#submit").click()};
+		});
+		$("#submit").click(function(event) {
+			var user = encodeURIComponent($("#user").val());
+			var pwd = encodeURIComponent($("#pwd").val());
+			var data = "user=" + user + "&pwd=" + pwd;
+			$.ajax({
+				url: '/login',
+				type: 'POST',
+				dataType: 'html',
+				data: data
+			})
+			.done(function(data) {
+				if(data == "pass") {
+					window.location.href = "/admin";
+				}else {
+					showAlert(data);
+				}
+			})
+			.fail(function() {
+				console.log("error");
+			});
+		});
+		$("input").click(function(event) {
+			hideAlert();
+		});
+		function showAlert(text) {
+			var html = '';
+			html += '<div class="alert alert-danger"><button type="button" data-dismiss="alert" ';
+			html += 'aria-hidden="true" class="close">×</button><strong>' + text + '</strong></div>';
+			$("#alert").html(html);
+		}
+		function hideAlert () {
+			$("#alert").html("");
+		}

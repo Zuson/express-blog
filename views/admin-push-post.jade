@@ -1,0 +1,168 @@
+extends layout
+
+block content
+	#admin-push-post
+		include admin-header.jade
+		.container-fluid
+			.row
+				.col-md-12
+					.btn-group
+						button.btn.btn-default.dropdown-toggle(type="button" data-toggle="dropdown") 
+							span 未分类 
+							span.caret
+						ul.dropdown-menu(role="menu")
+							- for(var i = 1; i < data.length; i++)
+								li
+									a(href="#" data-id=data[i].category_id)=data[i].name
+			.row
+				.col-md-4.col-sm-4.col-xs-4
+					input#title.form-control(type="text" placeholder="标题(100字以内)")
+				.col-md-2.col-sm-2.col-xs-2
+					span.asterisk *
+			.row
+				.col-md-4.col-sm-4.col-xs-4
+					input#keyWords.form-control(type="text" placeholder="关键字，逗号隔开(100字以内)")
+				.col-md-2.col-sm-2.col-xs-2
+					span.asterisk *
+			.row
+				.col-md-4.col-sm-4.col-xs-4
+					input#summary.form-control(type="text" placeholder="摘要(255字以内)")
+				.col-md-2.col-sm-2.col-xs-2
+					span.asterisk *
+			.row
+				.col-md-6
+					button.btn.btn-primary(type="button" id="feature-img-btn") 特征图片(800*200, 200k内)
+					input(type="file" id="feature-img-file" name="feature-img-file" style="display: none;")
+					input(type="file" id="post-img-file" name="post-img-file" style="display: none;")
+					span.asterisk *
+			.row
+				.col-md-6
+					#feature-img
+			.row
+				.col-md-6
+					textarea.form-control(rows=15)
+			.row
+				.col-md-6
+					button#submit.btn.btn-info(type="button") 提交
+
+		#alert
+	script(src="/javascripts/lib/tinymce/tinymce.min.js")
+	script.
+		var category_id = 1,
+			post_uri = shortId();
+		tinymce.init({ 
+			selector: 'textarea',
+			menubar: false,
+			statusbar: false,
+			plugins: ["link", "image", "fullscreen"],
+			toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright | link image fullscreen" 
+		});
+		$("#submit").click(function (event) {
+			var title = encodeURIComponent($("#title").val()),
+				keyWords = encodeURIComponent($("#keyWords").val()),
+				summary = encodeURIComponent($("#summary").val()),
+				image_url = $("#feature-img img").attr("src"),
+				content = encodeURIComponent(tinymce.activeEditor.getContent());
+			if($.trim(title) == "") {
+				return showAlert("标题內容不能為空");
+			}
+			if($.trim(keyWords) == "") {
+				return showAlert("关键字內容不能為空");
+			}
+			if($.trim(summary) == "") {
+				return showAlert("摘要內容不能為空");
+			}
+			if($.trim(content) == "") {
+				return showAlert("內容不能為空");
+			}
+			if(!image_url) {
+				return showAlert("请上传特征图片");
+			}
+			var data = "title=" + title + "&keyWords=" + keyWords + "&summary=" + summary + "&category_id=" + category_id + "&image_url=" + image_url + "&content=" + content + "&post_uri=" + post_uri;
+			$.ajax({
+				url: '/admin/push-post',
+				type: 'POST',
+				dataType: 'html',
+				data: data
+			})
+			.done(function (data) {
+				console.log(data);
+				if(data == "pass") {
+					window.location.href = "/admin/push-post";
+				}else {
+					showAlert(data);
+				}
+			})
+			.fail(function () {
+				console.log("error");
+			});
+		});
+		$("#title, #keyWords, #summary, textarea").focus(function (event) {
+			hideAlert();
+		});
+		$("button").not('#submit').click(function (event) {
+			hideAlert();
+		});
+		$("ul.dropdown-menu a").click(function (event) {
+			$("ul.dropdown-menu").siblings('button').children('span').eq(0).text($(this).text() + " ");
+			category_id = $(this).attr('data-id');
+		});
+		$("#feature-img-btn").click(function (event) {
+			$("#feature-img-file").click();
+		});
+		$("#feature-img-file").change(function (event) {
+			ajaxUploadFile($(this).get(0).files[0], function (res) {
+				if (res.resCode != 0) {return showAlert(res.resMsg)};
+				$('#feature-img').html('<img src="'+ res.data +'" style="width: 50%" />');
+			});
+		});
+		$("#post-img-file").change(function (event) {
+			//- $('#post-img-button-button').parents('.mce-container-body').find('.mce-textbox').eq(2).val(400);
+			//- $('#post-img-button-button').parents('.mce-container-body').find('.mce-textbox').eq(3).val(200);
+			ajaxUploadFile($(this).get(0).files[0], function (res) {
+				if (res.resCode != 0) {return showAlert(res.resMsg)};
+				console.log(res.data);
+				$('#post-img-button-button').parents('.mce-container-body').find('.mce-textbox').eq(0).val('/..' + res.data);
+			});
+		});
+		function ajaxUploadFile (file, callback) {
+			var formData = new FormData();
+			formData.append('file', file);
+			if(file.size > 4* 1024 * 1024) {
+				return showAlert("文件大小超过限制！");
+			}
+			if(file.type != "image/png" && file.type != "image/jpeg" && file.type != "image/gif"){
+				return showAlert("请上传jpg、png、gif等图像文件！");
+			}
+			$.ajax({
+				url: '/admin/upload-file/' + post_uri,
+				type: 'POST',
+				processData: false,
+				contentType: false,
+				data: formData
+			})
+			.done(function (res) {
+				callback(res);
+			})
+			.fail(function(xhr, statusText) {
+				console.log("error");  
+			});
+		}
+		function showAlert(text) {
+			var html = '';
+			html += '<div class="alert alert-danger"><button type="button" data-dismiss="alert" ';
+			html += 'aria-hidden="true" class="close">×</button><strong>' + text + '</strong></div>';
+			$("#alert").html(html);
+		}
+		function hideAlert () {
+			$("#alert").html("");
+		}
+		function shortId () {
+			var alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTOVWXYZ", 
+				strLength = 10, 
+				strUnique = '';
+			for(var i = 0; i < strLength; i++){
+				strUnique += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+			}
+			return strUnique;
+		}

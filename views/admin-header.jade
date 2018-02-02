@@ -1,0 +1,26 @@
+doctype html
+.admin-header
+	nav.navbar.navbar-inverse
+		.container-fluid
+			.navbar-header
+				button.collapsed.navbar-toggle(type="button" data-toggle="collapse" data-target="#A" aria-expanded="false")
+					span.sr-only Toggle navigation 
+					span.icon-bar 
+					span.icon-bar 
+					span.icon-bar 
+				a.navbar-brand(href="#") 博客系统
+
+			#A.collapse.navbar-collapse
+				ul.nav.navbar-nav 
+					li
+						a(href="/admin") 首页
+					li
+						a(href="/admin/category") 创建分类
+					li
+						a(href="/admin/push-post") 发布文章
+					li
+						a(href="/admin/edit-post") 编辑文章
+					li
+						a(href="/admin/comment") 审核评论
+					li
+						a(href="/admin/logout") 退出登录
